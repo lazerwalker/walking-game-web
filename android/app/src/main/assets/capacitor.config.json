@@ -1,0 +1,6 @@
+{
+	"appId": "com.example.app",
+	"appName": "walking-game-web",
+	"webDir": "www",
+	"bundledWebRuntime": false
+}
