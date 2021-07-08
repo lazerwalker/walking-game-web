@@ -1,14 +1,13 @@
 import { PlayFab, PlayFabClient } from "playfab-sdk"
 import { getUuid, setUserId } from "./cache";
 import playFabPromisify from "./playFabPromisify";
-import { User } from "./user";
+import { CatalogItem, Player } from "./types";
 
 const titleId = PlayFab.settings.titleId = "381AF";
-let playFabEntityKey: PlayFabClientModels.EntityKey | undefined
 let playFabUserId: string | undefined 
 let isLoggedIn = false
 
-export async function logInWithPlayfab(): Promise<User> {
+export async function logInWithPlayfab(): Promise<Player> {
     // TODO
     // if (iOS) { return logInWithGameCenter() }
     // if (android) { return logInWithGooglePlayGames() }
@@ -18,14 +17,19 @@ export async function logInWithPlayfab(): Promise<User> {
 async function logInWithCustomId() {
     const request = { ...loginRequest(), CustomId: getUuid() }
     const response = await playFabPromisify(PlayFabClient.LoginWithCustomID)(request)
-    return handleLoginResponse(response)
+    return handlePlayerInfoResponse(response)
 }
 
 function loginRequest(): PlayFabClientModels.LoginWithCustomIDRequest {
-return {
-    TitleId: titleId,
-    CreateAccount: true,
-    InfoRequestParameters: {
+    return {
+        TitleId: titleId,
+        CreateAccount: true,
+        InfoRequestParameters: infoRequestParameters()
+    }
+}
+
+function infoRequestParameters(): PlayFabClientModels.GetPlayerCombinedInfoRequestParams {
+    return {
         GetUserData: true,
         GetPlayerProfile: true,
         GetPlayerStatistics: true,
@@ -46,32 +50,25 @@ return {
         GetUserReadOnlyData: false,
     }
 }
-}
 
-const handleLoginResponse = async (result: PlayFabModule.IPlayFabSuccessContainer<PlayFabClientModels.LoginResult>): Promise<User> => {
+const handlePlayerInfoResponse = async (result: PlayFabModule.IPlayFabSuccessContainer<PlayFabClientModels.LoginResult>|PlayFabModule.IPlayFabSuccessContainer<PlayFabClientModels.GetPlayerCombinedInfoResult> ): Promise<Player> => {
     console.log(result)
-    let user: Partial<User> = {}
+    let player: Partial<Player> = {}
 
     const payload = result.data.InfoResultPayload
     if (payload) {
-        user.currency = payload.UserVirtualCurrency.CC
-        user.inventory = payload.UserInventory
+        player.currency = payload.UserVirtualCurrency.CC
+        player.inventory = payload.UserInventory.map(i => i.ItemId)
     }
 
     playFabUserId = result.data.PlayFabId
     if (playFabUserId) {
         setUserId(playFabUserId)
-        user.id = playFabUserId
+        player.id = playFabUserId
     }
 
     if (payload.PlayerProfile && payload.PlayerProfile.DisplayName) {
-        user.displayName = payload.PlayerProfile.DisplayName
-    }
-
-    console.log("Setting user id", playFabUserId)
-
-    if (result.data.EntityToken) {
-        playFabEntityKey = result.data.EntityToken.Entity
+        player.displayName = payload.PlayerProfile.DisplayName
     }
 
     isLoggedIn = true
@@ -79,10 +76,41 @@ const handleLoginResponse = async (result: PlayFabModule.IPlayFabSuccessContaine
     // registerForPushNotifications()
 
     // TODO: Is there a reasonable way to check if all properties exist and if not fail?
-    return user as User
+    return player as Player
 }
 
-export async function getCatalogItems(): Promise<PlayFabClientModels.CatalogItem[]> {
+export async function getCatalogItems(): Promise<CatalogItem[]> {
     const result = await playFabPromisify(PlayFabClient.GetCatalogItems)(null)
-    return result.data.Catalog
+    return (result.data.Catalog || []).map(item => {
+        return {
+            id: item.ItemId,
+            displayName: item.DisplayName,
+            description: item.Description,
+            price: item.VirtualCurrencyPrices["CC"]
+        }
+    })
+}
+
+export async function buyDailyQuest(item: CatalogItem) {
+    // TODO: I don't think PlayFab lets you say "the user can have at most 1 of this item"
+    // We'll eventually want to move buying logic to a cloud function to enforce this
+    
+    const request: PlayFabClientModels.PurchaseItemRequest = {
+        ItemId: item.id,
+        Price: item.price,
+        VirtualCurrency: "CC"
+    }
+    const result = await playFabPromisify(PlayFabClient.PurchaseItem)(request)
+
+    // TODO: We could theoretically optimize away 1 API call by 
+    // manually calculating price and inventory.
+    // This is cleaner (if maybe slower) as long as it works
+    const playerRequest = {
+        InfoRequestParameters: infoRequestParameters()
+    }
+    const playerResponse = await playFabPromisify(PlayFabClient.GetPlayerCombinedInfo)(playerRequest)
+    console.log(playerResponse)
+    const player = await handlePlayerInfoResponse(playerResponse) 
+    console.log(player)
+    return player
 }
