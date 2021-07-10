@@ -58,7 +58,12 @@ const handlePlayerInfoResponse = async (result: PlayFabModule.IPlayFabSuccessCon
     const payload = result.data.InfoResultPayload
     if (payload) {
         player.currency = payload.UserVirtualCurrency.CC
-        player.inventory = payload.UserInventory.map(i => i.ItemId)
+        player.inventory = payload.UserInventory.map(i => {
+            return {
+                id: i.ItemId,
+                expiration: new Date(i.Expiration)
+            }
+        })
     }
 
     playFabUserId = result.data.PlayFabId

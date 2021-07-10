@@ -2,8 +2,11 @@ import React, { createContext, useEffect, useReducer } from 'react'
 import { Action, NewAction } from '../actions'
 import { getCatalogItems, logInWithPlayfab } from '../playFab'
 import reducer, { initialState, State } from '../reducer'
+import { Screens } from '../screens'
 import DailyQuestStoreList from './DailyQuestStoreList'
 import PlayerHeaderView from './PlayerHeaderView'
+import QuestList from './QuestList'
+import ScreenSwitcherTabView from './ScreenSwitcherTabView'
 
 export const DispatchContext = createContext(null)
 
@@ -21,6 +24,18 @@ const App = () => {
       dispatch(NewAction.UpdateCatalog(catalog))
     })()
   }, [])
+  
+  let screen
+  switch(state.currentScreen) {
+      case Screens.Store: {
+        screen = <DailyQuestStoreList items={state.catalog} playerItemIds={state.player.inventory.map(i => i.id)} />
+        break
+      }
+      case Screens.Inventory: {
+        screen = <QuestList quests={state.player.inventory} />
+        break
+      }
+  }
   return (
       <DispatchContext.Provider value={dispatch}>
         <div>
@@ -28,7 +43,8 @@ const App = () => {
           {state.player ? (
             <div>
               <PlayerHeaderView player={state.player} />
-              <DailyQuestStoreList items={state.catalog} playerItemIds={state.player.inventory} />
+              {screen}
+              <ScreenSwitcherTabView currentScreen={state.currentScreen} />
             </div>
           ) : 
           <div>Loading...</div> 

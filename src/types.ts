@@ -3,7 +3,16 @@ export interface Player {
   displayName?: string
 
   currency: number
-  inventory: string[] // Catalog item IDs, reference the catalog to look up
+  inventory: QuestInstance[] // Catalog item IDs, reference the catalog to look up
+}
+
+// I'm not super happy about this naming
+export interface QuestInstance {
+  id: string // corresponds with a CatalogItem.id
+  expiration: Date
+  displayName: string
+  description: string
+  price: number
 }
 
 export interface CatalogItem {

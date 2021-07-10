@@ -1,4 +1,5 @@
 import { Action, ActionType } from "./actions";
+import { Screens } from "./screens";
 import { CatalogItem, Player } from "./types"
 
 // TODO: This has fields that may be uninitialized before the app is 
@@ -7,6 +8,7 @@ import { CatalogItem, Player } from "./types"
 export type State = {
   player?: Player
   catalog?: CatalogItem[]
+  currentScreen?: Screens
 }
 
 export const initialState: State = {}
@@ -17,11 +19,29 @@ export default (oldState: State, action: Action): State => {
   switch(action.type) {
     case ActionType.UpdatePlayer: {
       state.player = {...state.player || {}, ...action.value as Player}
-      break;
+      break
     }
     case ActionType.UpdateCatalog: {
       state.catalog = action.value
-      break;
+      
+      // I really don't like this!
+      state.player.inventory = (state.player.inventory || []).map((c) => {
+        const catalogItem = state.catalog.find(d => d.id === c.id)
+        if (!catalogItem) return
+
+        return {
+          id: c.id,
+          expiration: c.expiration,
+          description: catalogItem.description,
+          displayName: catalogItem.displayName,
+          price: catalogItem.price
+        }
+      })
+      break
+    }
+    case ActionType.ShowScreen: {
+      state.currentScreen = action.value
+      break
     }
   }
 

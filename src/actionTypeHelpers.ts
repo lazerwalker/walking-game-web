@@ -45,8 +45,8 @@ export interface ActionsWithoutPayload<TypeAction> {
  */
 export interface ActionCreatorsMapObject {
   [key: string]: (
-    ...args: any[]
-  ) => ActionsWithPayload<any, any>
+    ...args: T
+  ) => ActionsWithPayload<any, T>
 }
  
 /**
