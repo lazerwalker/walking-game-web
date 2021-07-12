@@ -9,7 +9,7 @@ export interface Player {
 // I'm not super happy about this naming
 export interface QuestInstance {
   id: string // corresponds with a CatalogItem.id
-  expiration: Date
+  expiration: string // Our data store doesn't like obj types. Use `new Date(expiration)` at call-time.
   displayName: string
   description: string
   price: number

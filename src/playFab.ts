@@ -58,10 +58,15 @@ const handlePlayerInfoResponse = async (result: PlayFabModule.IPlayFabSuccessCon
     const payload = result.data.InfoResultPayload
     if (payload) {
         player.currency = payload.UserVirtualCurrency.CC
+        // TODO: Real data normally gets injected in when we get the catalog.
+        // Not doing that here may bite us
         player.inventory = payload.UserInventory.map(i => {
             return {
                 id: i.ItemId,
-                expiration: new Date(i.Expiration)
+                expiration: new Date(i.Expiration),
+                displayName: "",
+                description: "",
+                price: 0
             }
         })
     }

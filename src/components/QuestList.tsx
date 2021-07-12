@@ -11,7 +11,7 @@ export default (props: Props) => {
 
     return (
     <div>
-      {quests.map(q => <QuestItemView quest={q} />)}
+      {quests.map(q => <QuestItemView quest={q} key={q.id}/>)}
     </div>
   )
 }
