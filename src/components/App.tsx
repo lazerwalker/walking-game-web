@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useReducer } from 'react'
 import { Action, NewAction } from '../actions'
 import { getCatalogItems, logInWithPlayfab } from '../playFab'
+import StepCounter from '../plugins/stepCounter'
 import reducer, { initialState, State } from '../reducer'
 import { Screens } from '../screens'
 import DailyQuestStoreList from './DailyQuestStoreList'
@@ -17,6 +18,11 @@ const App = () => {
   );
   useEffect(() => {
     (async () => {
+      StepCounter.getStepsToday().then((steps) => {
+        console.log(steps)
+        dispatch(NewAction.UpdatePlayer({steps}))
+      })
+
       const player = await logInWithPlayfab()
       dispatch(NewAction.UpdatePlayer(player))
 

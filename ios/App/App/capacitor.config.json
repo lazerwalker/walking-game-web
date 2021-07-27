@@ -1,6 +1,6 @@
 {
-	"appId": "com.example.app",
-	"appName": "walking-game-web",
-	"webDir": "www",
+	"appId": "com.lazerwalker.walk-the-world",
+	"appName": "Walk The World",
+	"webDir": "dist",
 	"bundledWebRuntime": false
 }

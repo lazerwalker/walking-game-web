@@ -3,5 +3,8 @@ import { Player } from '../types'
 
 export default function(props: {player: Player}) {
   const {player} = props
-  return <div>${player.currency}</div>
+  return <div>
+    <div>${player.currency}</div>
+    <div>{JSON.stringify(player.steps)} steps</div> 
+    </div>
 }

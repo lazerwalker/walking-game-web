@@ -4,6 +4,8 @@ export interface Player {
 
   currency: number
   inventory: QuestInstance[] // Catalog item IDs, reference the catalog to look up
+
+  steps: any // Today's steps. This will get more complicated :)
 }
 
 // I'm not super happy about this naming
