@@ -10,10 +10,7 @@ import CoreMotion
 
 @objc(StepCounterPlugin)
 public class StepCounterPlugin: CAPPlugin {
-    @objc func getStepsToday(_ call: CAPPluginCall) {
-        let value = call.getString("value") ?? ""
-        call.resolve(["value": value])
-        
+    @objc func getStepsToday(_ call: CAPPluginCall) {  
         if (!CMPedometer.isStepCountingAvailable()) {
             call.reject("Step counting isn't available")
             return
